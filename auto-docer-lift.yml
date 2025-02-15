@@ -4,7 +4,7 @@
   become: true
   vars:
     service_name: my_service
-    docker_image: my_docker
+    docker_image: vladislav0111/app
     image_version: latest
   
   tasks:
@@ -19,4 +19,28 @@
         dest: "/etc/systemd/system/{{ service_name }}.service"
         mode: 0644
       notify: Restart service
-      
+
+    - name: Pull docker image
+      docekr_image:
+        name: "{{ docker_image }}:{{ image_version }}"
+        source: pull
+
+    - name: Start docker container
+      shell: >
+        docekr run -d --rm --name {{ service_name }} --restart always -p 8080:8080 {{ docker_image }}:{{ image_version }}
+      register: docker_result
+      changed_when: "'Created' in docker_result.stdout"
+      notify: Restart service
+
+    - name: Enable and start service
+      systemd:
+        name: "{{ service_name }}"
+        enabled: true
+        state: started
+        demon_reload: true
+  
+  handlers:
+    - name: Restart service
+      systemd:
+        name: "{{ service_name }}"
+        state: restarted
