@@ -1,0 +1,22 @@
+---
+- name: deploy docker service
+  hosts: all
+  become: true
+  vars:
+    service_name: my_service
+    docker_image: my_docker
+    image_version: latest
+  
+  tasks:
+    - name: Ensure Docker is install
+      packege:
+        name: docker
+        state: present
+    
+    - name: Copy unit file systemd
+      template:
+        src: ./docker-service.j2
+        dest: "/etc/systemd/system/{{ service_name }}.service"
+        mode: 0644
+      notify: Restart service
+      

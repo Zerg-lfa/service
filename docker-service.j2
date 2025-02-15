@@ -1,0 +1,10 @@
+[Unit]
+Description=Docker service auto_docker
+
+[Service]
+ExecStart=/usr/bin/docker run --rm --name {{ service_name }} --restart always -p 8080:8080 {{ docker_image }}:{{ image_version }}
+ExecStop=/usr/bin/docker stop {{ service_name }}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
