@@ -2,17 +2,13 @@
 - name: deploy docker service
   hosts: all
   become: true
+
   vars:
     service_name: my_service
     docker_image: vladislav0111/app
     image_version: latest
   
   tasks:
-    - name: Ensure Docker is install
-      packege:
-        name: docker
-        state: present
-    
     - name: Copy unit file systemd
       template:
         src: ./docker-service.j2
@@ -21,13 +17,13 @@
       notify: Restart service
 
     - name: Pull docker image
-      docekr_image:
+      docker_image:
         name: "{{ docker_image }}:{{ image_version }}"
         source: pull
 
     - name: Start docker container
       shell: >
-        docekr run -d --rm --name {{ service_name }} --restart always -p 8080:8080 {{ docker_image }}:{{ image_version }}
+        docker run -d --rm --name {{ service_name }} -p 8080:8080 {{ docker_image }}:{{ image_version }}
       register: docker_result
       changed_when: "'Created' in docker_result.stdout"
       notify: Restart service
@@ -37,7 +33,7 @@
         name: "{{ service_name }}"
         enabled: true
         state: started
-        demon_reload: true
+        daemon_reload: true
   
   handlers:
     - name: Restart service
